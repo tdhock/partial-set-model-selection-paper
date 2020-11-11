@@ -1,0 +1,11 @@
+** TODOs
+
+c++ code
+
+** 10 Nov 2020
+
+[[file:figure-four-models.R]] makes
+
+[[file:figure-four-models-random.png]] 
+
+[[file:figure-four-models-systematic.png]]
