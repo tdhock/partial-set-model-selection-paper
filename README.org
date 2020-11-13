@@ -2,6 +2,14 @@
 
 c++ code
 
+** 13 Nov 2020
+
+[[file:figure-four-models-cpp.R]] makes
+
+[[file:figure-four-models-cpp-random.png]]
+
+[[file:figure-four-models-cpp-systematic.png]]
+
 ** 10 Nov 2020
 
 [[file:figure-four-models.R]] makes
