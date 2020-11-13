@@ -71,6 +71,7 @@ works_with_R(
   "tdhock/penaltyLearning@eaeadbf7f02d2636377c2eeb290fd59c2085b5d5",
   "tdhock/binseg@d79b6022a33a7e94cd153a52c5a0a6675bbe76a7",
   microbenchmark="1.4.6",
+  inline="1.0",
   directlabels="2018.5.22",
   tikzDevice="0.12")
 ##install.packages("~/R/penaltyLearning", repo=NULL)

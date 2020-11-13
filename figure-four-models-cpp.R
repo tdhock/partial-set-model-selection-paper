@@ -6,6 +6,12 @@ L3.list <- list(
 pen.list <- list(
   random=c(4, 0.5, 1, 2, 3.5),
   systematic=c(0, Inf, 8/3, 3.25))
+fx <- inline::cxxfunction(
+  signature(), plugin="Rcpp", include=readLines("figure-four-models-cpp.cpp"))
+unif_module <- Rcpp::Module("unif_module", inline::getDynLib(fx))
+Uniform <- unif_module$Uniform
+u <- new(Uniform, 0, 10)
+
 iteration.dt.list <- list()
 vline.dt.list <- list()
 for(models.selected in names(L3.list)){
@@ -50,7 +56,6 @@ for(models.selected in names(L3.list)){
     for(iteration in seq_along(pen.vec)){
       it.pen.vec <- pen.vec[1:iteration]
       it.selection <- select.at(it.pen.vec)
-      print(it.selection[, .(penalty, loss, complexity)])
       iteration.dt.list[[
         paste(models.selected, penalties, iteration)
         ]] <- data.table(
