@@ -6,12 +6,6 @@ L3.list <- list(
 pen.list <- list(
   random=c(4, 0.5, 1, 2, 3.5),
   systematic=c(0, Inf, 8/3, 3.25))
-fx <- inline::cxxfunction(
-  signature(), plugin="Rcpp", include=readLines("figure-four-models-cpp.cpp"))
-unif_module <- Rcpp::Module("unif_module", inline::getDynLib(fx))
-Uniform <- unif_module$Uniform
-u <- new(Uniform, 0, 10)
-
 iteration.dt.list <- list()
 vline.dt.list <- list()
 for(models.selected in names(L3.list)){
@@ -21,6 +15,7 @@ for(models.selected in names(L3.list)){
     pen.vec <- pen.list[[penalties]]
     loss.dt <- data.table(loss=loss.vec, complexity=seq_along(loss.vec)-1)
     selection.dt <- data.table(penaltyLearning::modelSelection(loss.dt))
+    selection.dt[, .(min.lambda, max.lambda, loss, complexity)]
     cost <- function(loss, complexity, penalty){
       pen.comp <- ifelse(complexity==0, 0, complexity*penalty)
       loss + pen.comp
@@ -31,20 +26,6 @@ for(models.selected in names(L3.list)){
         pen.dt, .(penalty, loss, complexity),
         mult="first",
         on=.(min.lambda <= penalty, max.lambda >= penalty)]
-      sel.dt[, next.complexity := c(complexity[-1], -Inf)]
-      sel.dt[, next.pen := c(penalty[-1], -Inf)]
-      sel.dt[, next.loss := c(loss[-1], Inf)]
-      sel.dt[, b := ifelse(
-        is.finite(next.loss),
-        (next.loss-loss)/(complexity-next.complexity),
-        -Inf)]
-      sel.dt[, breakpoint := ifelse(
-        complexity-1==next.complexity | b==penalty, b, NA_real_)]
-      sel.dt[, pen.max := fcase(
-        complexity==0, Inf,
-        complexity==next.complexity, next.pen,
-        is.finite(breakpoint), breakpoint,
-        default=NA_real_)]
       sel.dt[]
     }
     status <- "optimal"
@@ -53,58 +34,61 @@ for(models.selected in names(L3.list)){
       penalty=pen.vec,
       status,
       iteration=seq_along(pen.vec))
+    m = new(penmap::penmap)
     for(iteration in seq_along(pen.vec)){
-      it.pen.vec <- pen.vec[1:iteration]
-      it.selection <- select.at(it.pen.vec)
+      it.pen <- pen.vec[[iteration]]
+      it.selection <- select.at(it.pen)
+      it.selection[, m$insert(penalty, loss, complexity)]
       iteration.dt.list[[
         paste(models.selected, penalties, iteration)
         ]] <- data.table(
-          L3,
-        models.selected, penalties, iteration, it.selection)
+          L3, status,
+          models.selected, penalties, iteration, m$df())
     }
   }
 }
 iteration.dt <- do.call(rbind, iteration.dt.list)
 vline.dt <- do.call(rbind, vline.dt.list)
 
+by.vec = c("models.selected", "L3", "iteration")
 for(p in names(pen.list)){
   pen.iterations <- iteration.dt[penalties==p]
   pen.vlines <- vline.dt[penalties==p]
+  pen.ablines = pen.iterations[
+  , unique(.SD),
+    .SDcols=c("loss", "model_size"),
+    by=by.vec]
+  pen.iterations[, next_pen := c(penalty[-1], NA), by=by.vec]
+  pen.segs = pen.iterations[after==1]
   (gg <- ggplot()+
      ggtitle(paste(p, "penalty selection"))+
      facet_grid(models.selected + L3 ~ iteration, labeller=label_both)+
      scale_size_manual(values=c(optimal=2))+
      coord_equal(xlim=c(0, 4.5))+
      xlab("penalty")+
-     ylab("loss + penalty*complexity")+
+     ylab("loss + penalty*model_size")+
      geom_vline(aes(
        xintercept=penalty, color=status),
        size=1,
        data=pen.vlines)+
      geom_segment(aes(
-       penalty, cost(loss, complexity, penalty), 
+       penalty, cost(loss, model_size, penalty),
        color=status, size=status,
-       xend=pen.max, yend=cost(loss, complexity, pen.max)),
-       data=pen.iterations[!is.na(pen.max)])+
-     ## after breakpoint.
-     geom_segment(aes(
-       breakpoint, cost(loss, complexity, breakpoint), 
-       color=status, size=status,
-       xend=next.pen, yend=cost(next.loss, next.complexity, next.pen)),
-       data=pen.iterations[is.finite(breakpoint)])+
+       xend=next_pen, yend=cost(loss, model_size, next_pen)),
+       data=pen.segs)+
      geom_point(aes(
-       penalty, cost(loss, complexity, penalty),
+       penalty, cost(loss, model_size, penalty),
        fill=status, size=status),
        shape=21,
        color="black",
        data=pen.iterations)+
      geom_abline(aes(
-       slope=complexity,
+       slope=model_size,
        intercept=loss),
-       data=unique(pen.iterations))
+       data=pen.ablines)
   )
   png(
-    sprintf("figure-four-models-%s.png", p),
+    sprintf("figure-four-models-cpp-%s.png", p),
     width=10, height=6, units="in", res=100)
   print(gg)
   dev.off()
