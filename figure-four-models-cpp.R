@@ -55,11 +55,11 @@ for(p in names(pen.list)){
   pen.iterations <- iteration.dt[penalties==p]
   pen.vlines <- vline.dt[penalties==p]
   pen.ablines = pen.iterations[
-  , unique(.SD),
-    .SDcols=c("loss", "model_size"),
+  , unique(rbind(
+    data.table(loss=loss_on, size=size_on),
+    data.table(loss=loss_after, size=size_after))),
     by=by.vec]
   pen.iterations[, next_pen := c(penalty[-1], NA), by=by.vec]
-  pen.segs = pen.iterations[after==1]
   (gg <- ggplot()+
      ggtitle(paste(p, "penalty selection"))+
      facet_grid(models.selected + L3 ~ iteration, labeller=label_both)+
@@ -72,18 +72,18 @@ for(p in names(pen.list)){
        size=1,
        data=pen.vlines)+
      geom_segment(aes(
-       penalty, cost(loss, model_size, penalty),
+       penalty, cost(loss_after, size_after, penalty),
        color=status, size=status,
-       xend=next_pen, yend=cost(loss, model_size, next_pen)),
-       data=pen.segs)+
+       xend=next_pen, yend=cost(loss_after, size_after, next_pen)),
+       data=pen.iterations[is.finite(loss_after)])+
      geom_point(aes(
-       penalty, cost(loss, model_size, penalty),
+       penalty, cost(loss_on, size_on, penalty),
        fill=status, size=status),
        shape=21,
        color="black",
        data=pen.iterations)+
      geom_abline(aes(
-       slope=model_size,
+       slope=size,
        intercept=loss),
        data=pen.ablines)
   )
