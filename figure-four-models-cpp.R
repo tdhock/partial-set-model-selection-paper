@@ -60,6 +60,10 @@ for(p in names(pen.list)){
     data.table(loss=loss_after, size=size_after))),
     by=by.vec]
   pen.iterations[, next_pen := c(penalty[-1], NA), by=by.vec]
+  pen.points <- data.table(pen.iterations, type="end")
+  pen.points[
+    loss_on==Inf & size_on == -2,
+    `:=`(loss_on=loss_after, size_on=size_after, type="break")]
   (gg <- ggplot()+
      ggtitle(paste(p, "penalty selection"))+
      facet_grid(models.selected + L3 ~ iteration, labeller=label_both)+
@@ -78,10 +82,10 @@ for(p in names(pen.list)){
        data=pen.iterations[is.finite(loss_after)])+
      geom_point(aes(
        penalty, cost(loss_on, size_on, penalty),
-       fill=status, size=status),
+       fill=type),
        shape=21,
        color="black",
-       data=pen.iterations)+
+       data=pen.points)+
      geom_abline(aes(
        slope=size,
        intercept=loss),

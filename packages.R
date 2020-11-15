@@ -65,7 +65,7 @@ works_with_R(
   "4.0.2",
   data.table="1.13.1",
   ggplot2="3.3.2",
-  "tdhock/penmap@fcdcf49f03fecc8a41097eb1ab27138781d63e81",
+  "tdhock/penmap@c2b00b69a29ae89cb064b47c2d185efcc630d4df",
   tikzDevice="0.12.3.1",
   penaltyLearning="2020.5.13")
 options(
