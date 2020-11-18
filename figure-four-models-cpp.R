@@ -8,14 +8,20 @@ pen.list <- list(
   systematic=c(0, Inf, 8/3, 3.25))
 iteration.dt.list <- list()
 vline.dt.list <- list()
+models.selected <- "4"
+penalties <- "random"
+
 for(models.selected in names(L3.list)){
+  print(models.selected)
   for(penalties in names(pen.list)){
+    print(penalties)
     L3 <- L3.list[[models.selected]]
     loss.vec <- c(10, L3, 3.5, 2)
     pen.vec <- pen.list[[penalties]]
     loss.dt <- data.table(loss=loss.vec, complexity=seq_along(loss.vec)-1)
+    print(loss.dt)
     selection.dt <- data.table(penaltyLearning::modelSelection(loss.dt))
-    selection.dt[, .(min.lambda, max.lambda, loss, complexity)]
+    print(selection.dt[, .(min.lambda, max.lambda, loss, complexity)])
     cost <- function(loss, complexity, penalty){
       pen.comp <- ifelse(complexity==0, 0, complexity*penalty)
       loss + pen.comp
@@ -38,7 +44,10 @@ for(models.selected in names(L3.list)){
     for(iteration in seq_along(pen.vec)){
       it.pen <- pen.vec[[iteration]]
       it.selection <- select.at(it.pen)
+      print(it.selection)
       it.selection[, m$insert(penalty, loss, complexity)]
+      print(m$df())
+      print(m$helpful())
       iteration.dt.list[[
         paste(models.selected, penalties, iteration)
         ]] <- data.table(
@@ -50,6 +59,7 @@ for(models.selected in names(L3.list)){
 iteration.dt <- do.call(rbind, iteration.dt.list)
 vline.dt <- do.call(rbind, vline.dt.list)
 
+opt.color <- "red"
 by.vec = c("models.selected", "L3", "iteration")
 for(p in names(pen.list)){
   pen.iterations <- iteration.dt[penalties==p]
@@ -58,12 +68,17 @@ for(p in names(pen.list)){
   , unique(rbind(
     data.table(loss=loss_on, size=size_on),
     data.table(loss=loss_after, size=size_after))),
-    by=by.vec]
+    by=by.vec][0 <= size]
   pen.iterations[, next_pen := c(penalty[-1], NA), by=by.vec]
-  pen.points <- data.table(pen.iterations, type="end")
-  pen.points[
-    loss_on==Inf & size_on == -2,
+  opt.points <- data.table(pen.iterations, type="end")
+  opt.points[
+    size_on == -1,
     `:=`(loss_on=loss_after, size_on=size_after, type="break")]
+  help.points <- data.table(pen.iterations, type="helpful")[size_after == -3]
+  help.points[, penalty := loss_after]
+  pen.points <- rbind(opt.points, help.points)
+  pen.points[, cost := cost(loss_on, size_on, penalty)]
+  pen.points[loss_on==Inf, cost := min(pen.points$cost, na.rm=TRUE)-1]
   (gg <- ggplot()+
      ggtitle(paste(p, "penalty selection"))+
      facet_grid(models.selected + L3 ~ iteration, labeller=label_both)+
@@ -79,17 +94,22 @@ for(p in names(pen.list)){
        penalty, cost(loss_after, size_after, penalty),
        color=status, size=status,
        xend=next_pen, yend=cost(loss_after, size_after, next_pen)),
-       data=pen.iterations[is.finite(loss_after)])+
+       data=pen.iterations[0 <= size_after])+
+     geom_abline(aes(
+       slope=size,
+       intercept=loss),
+       data=pen.ablines)+
      geom_point(aes(
-       penalty, cost(loss_on, size_on, penalty),
+       penalty, cost,
        fill=type),
        shape=21,
        color="black",
        data=pen.points)+
-     geom_abline(aes(
-       slope=size,
-       intercept=loss),
-       data=pen.ablines)
+     scale_color_manual(values=c(optimal=opt.color))+
+     scale_fill_manual(values=c(
+       "break"=opt.color,
+       end="black",
+       helpful="white"))
   )
   png(
     sprintf("figure-four-models-cpp-%s.png", p),
