@@ -65,8 +65,10 @@ works_with_R(
   "4.0.2",
   data.table="1.13.1",
   ggplot2="3.3.2",
-  "tdhock/penmap@dba176a2e5902e7680a49fa21df7a20e42429734",
+  "tdhock/penmap@f939b235e7b269643a6b7b96e02c91173ab9203e",
+  jointseg="1.0.2",
   tikzDevice="0.12.3.1",
+  fpop="2019.8.26",
   penaltyLearning="2020.5.13")
 options(
   tikzDocumentDeclaration=paste(

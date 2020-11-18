@@ -1,8 +1,16 @@
 ** TODOs
 
-c++ code
+** 18 Nov 2020
+
+[[file:FPOP.lsignals.R]] computes full path for LOPART data. (max data ~= 40,000)
+
+[[file:FPOP.neuroblastoma.R]] does the same for neuroblastoma data but
+this is less interesting because it is smaller by a factor of 10 (~
+4,000 max data).
 
 ** 13 Nov 2020
+
+c++ code
 
 [[file:figure-four-models-cpp.R]] makes
 

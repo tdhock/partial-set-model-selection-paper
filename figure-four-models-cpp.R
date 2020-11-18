@@ -107,8 +107,8 @@ for(p in names(pen.list)){
        data=pen.points)+
      scale_color_manual(values=c(optimal=opt.color))+
      scale_fill_manual(values=c(
-       "break"=opt.color,
-       end="black",
+       "break"="black",
+       end=opt.color,
        helpful="white"))
   )
   png(
