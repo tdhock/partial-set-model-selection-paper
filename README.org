@@ -1,5 +1,23 @@
 ** TODOs
 
+** 26 Feb 2021
+
+[[file:PELT.lsignals.R]] computes [[file:PELT.lsignals.rds]]
+
+[[file:figure-PELT-lsignals.R]] visualizes those results:
+
+Comparison between pdpa, penmap, crops in terms of number of selected
+models shows that penmap/pdpa are mostly consistent whereas crops
+sometimes selects fewer models.
+
+[[file:figure-PELT-lsignals-selected-penmap-pdpa.png]]
+
+[[file:figure-PELT-lsignals-selected-penmap-crops.png]]
+
+[[file:figure-PELT-lsignals-selected-pdpa-crops.png]]
+
+Finally timings of the different methods
+
 ** 18 Nov 2020
 
 [[file:FPOP.lsignals.R]] computes full path for LOPART data. (max data ~= 40,000)
