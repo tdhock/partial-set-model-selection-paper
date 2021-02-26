@@ -78,9 +78,13 @@ gg <- ggplot(sec.df)+
     N.data, median, color=method))+
   geom_ribbon(aes(
     N.data, ymin=q25, ymax=q75, fill=method),
-    alpha=0.5)
+    alpha=0.5)+
+  scale_y_continuous(
+    "Median time in seconds to compute full path of changepoint models")
+dl <- directlabels::direct.label(gg, "right.polygons")+
+  scale_x_continuous(limits=c(0, 2300))
 png(
   "figure-PELT-lsignals.png",
   width=5, height=5, units="in", res=200)
-print(gg)
+print(dl)
 dev.off()

@@ -73,8 +73,11 @@ works_with_R(
   R.utils="2.10.1",
   future.apply="1.6.0",
   changepoint="2.2.2",
-  penaltyLearning="2020.5.13")
+  penaltyLearning="2020.5.13",
+  quadprog="1.0",
+  "tdhock/directlabels@54ccbb95e0079649d350865f8c063adfc8fbbf0b")
 options(
   tikzDocumentDeclaration=paste(
     "\\documentclass[12pt]{article}"),
   tikzMetricsDictionary="tikzMetrics")
+

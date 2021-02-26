@@ -18,6 +18,8 @@ sometimes selects fewer models.
 
 Finally timings of the different methods
 
+[[file:figure-PELT-lsignals.png]]
+
 ** 18 Nov 2020
 
 [[file:FPOP.lsignals.R]] computes full path for LOPART data. (max data ~= 40,000)
